@@ -1,39 +1,76 @@
 name: AI News Podcast
 
 on:
+
+  # 毎朝5:00 JST
   schedule:
-    # 毎朝5:00 JST
     - cron: "0 20 * * *"
 
+  # GitHub画面から手動実行可能
   workflow_dispatch:
 
+
 jobs:
+
   generate-podcast:
 
     runs-on: ubuntu-latest
 
     steps:
 
-      - name: Checkout
+      # --------------------------------
+      # Repository
+      # --------------------------------
+
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+
+      # --------------------------------
+      # Python
+      # --------------------------------
 
       - name: Setup Python
         uses: actions/setup-python@v5
+
         with:
           python-version: "3.12"
 
+
+      # --------------------------------
+      # Dependencies
+      # --------------------------------
+
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate podcast
+
+      # --------------------------------
+      # Podcast generation
+      # --------------------------------
+
+      - name: Generate Podcast
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
         run: |
           python main.py
 
-      - name: Upload podcast
+
+      # --------------------------------
+      # Save MP3 / Script
+      # --------------------------------
+
+      - name: Upload Podcast
         uses: actions/upload-artifact@v4
+
         with:
-          name: ai-news-podcast
-          path: ai_news.mp3
+          name: ai-news-podcast-${{ github.run_number }}
+
+          path: |
+            ai_news.mp3
+            script.txt
+
+          retention-days: 7
